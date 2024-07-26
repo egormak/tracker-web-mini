@@ -3,37 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram WebApp</title>
+    <title>Tracker Task Time</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #5e72e4;
             text-align: center;
-            padding: 50px;
+        }
+        #taskList {
+            list-style-type: none;
+            padding: 0;
+        }
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
         }
         button {
-            padding: 10px 20px;
-            font-size: 16px;
+            background-color: #5e72e4;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            margin-right: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to Telegram WebApp</h1>
-    <button id="sendDataButton">Send Data to Telegram</button>
+    <div class="container">
+        <h1>Tracker Task Time</h1>
+        <div>
+            <input type="text" id="taskInput" placeholder="Enter a new task">
+            <button onclick="addTask()">Add Task</button>
+        </div>
+        <ul id="taskList"></ul>
+    </div>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        const tg = window.Telegram.WebApp;
+        let tg = window.Telegram.WebApp;
+        tg.expand();
 
-        // Initialize the Web App
-        tg.ready();
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const taskList = document.getElementById('taskList');
+            
+            if (taskInput.value.trim() !== '') {
+                const li = document.createElement('li');
+                li.className = 'task-item';
+                li.innerHTML = `
+                    <span>${taskInput.value}</span>
+                    <button onclick="startTracking(this)">Start</button>
+                `;
+                taskList.appendChild(li);
+                taskInput.value = '';
+            }
+        }
 
-        // Button click event to send data to Telegram
-        document.getElementById('sendDataButton').addEventListener('click', () => {
-            tg.sendData('Hello from WebApp');
-        });
-
-        // Set the background color of the Web App
-        tg.setBackgroundColor('bg_color');
+        function startTracking(button) {
+            if (button.textContent === 'Start') {
+                button.textContent = 'Stop';
+                button.style.backgroundColor = '#dc3545';
+            } else {
+                button.textContent = 'Start';
+                button.style.backgroundColor = '#5e72e4';
+            }
+        }
     </script>
 </body>
 </html>
