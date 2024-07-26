@@ -42,11 +42,18 @@
             padding: 10px 15px;
             border-radius: 4px;
             cursor: pointer;
+            margin: 5px;
         }
         input[type="text"] {
             width: 70%;
             padding: 10px;
             margin-right: 10px;
+        }
+        #sendCommandButton {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            background-color: #28a745;
         }
     </style>
 </head>
@@ -58,36 +65,76 @@
             <button onclick="addTask()">Add Task</button>
         </div>
         <ul id="taskList"></ul>
+        <button id="sendCommandButton" onclick="sendCommandToBot()">Send Task Summary to Bot</button>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
 
+        let tasks = [];
+
         function addTask() {
             const taskInput = document.getElementById('taskInput');
             const taskList = document.getElementById('taskList');
             
             if (taskInput.value.trim() !== '') {
+                const task = {
+                    name: taskInput.value,
+                    startTime: null,
+                    endTime: null
+                };
+                tasks.push(task);
+
                 const li = document.createElement('li');
                 li.className = 'task-item';
                 li.innerHTML = `
-                    <span>${taskInput.value}</span>
-                    <button onclick="startTracking(this)">Start</button>
+                    <span>${task.name}</span>
+                    <button onclick="toggleTracking(${tasks.length - 1})">Start</button>
                 `;
                 taskList.appendChild(li);
                 taskInput.value = '';
             }
         }
 
-        function startTracking(button) {
-            if (button.textContent === 'Start') {
+        function toggleTracking(index) {
+            const task = tasks[index];
+            const button = document.querySelectorAll('.task-item button')[index];
+
+            if (!task.startTime) {
+                task.startTime = new Date();
                 button.textContent = 'Stop';
                 button.style.backgroundColor = '#dc3545';
             } else {
+                task.endTime = new Date();
                 button.textContent = 'Start';
                 button.style.backgroundColor = '#5e72e4';
             }
+        }
+
+        function sendCommandToBot() {
+            let summary = "Task Summary:\n";
+            tasks.forEach((task, index) => {
+                summary += `${index + 1}. ${task.name}: `;
+                if (task.startTime && task.endTime) {
+                    const duration = (task.endTime - task.startTime) / 1000 / 60; // in minutes
+                    summary += `${duration.toFixed(2)} minutes\n`;
+                } else if (task.startTime) {
+                    summary += "In progress\n";
+                } else {
+                    summary += "Not started\n";
+                }
+            });
+
+            // Send the data back to the Telegram bot
+            tg.sendData(summary);
+
+            // Optionally, show a confirmation to the user
+            tg.showPopup({
+                title: "Summary Sent",
+                message: "Task summary has been sent to the bot.",
+                buttons: [{type: "ok"}]
+            });
         }
     </script>
 </body>
